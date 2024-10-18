@@ -24,6 +24,7 @@
     if (playButton) {
         playButton.addEventListener('click', () => {
             isPlayClicked = true; // Устанавливаем флаг, если кнопка была нажата
+            console.log("Кнопка Play нажата вручную, включаем авто-клик."); // Выводим в консоль
             startAutoClick(); // Запускаем автоматические клики после нажатия
         });
     } else {
@@ -44,6 +45,7 @@
     const clickPlayButton = () => {
         if (!playButton) return;
         if (!playButton.textContent.toLowerCase().includes("play")) return;
+        console.log("Автоматический клик по кнопке Play."); // Выводим в консоль
         playButton.click();
     };
 

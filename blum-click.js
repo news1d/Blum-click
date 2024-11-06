@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Blum Enhanced Autoclicker 5.0
+// @name         Blum Enhanced Autoclicker 6.0
 // @version      1.3
 // @namespace    Violentmonkey Scripts
 // @match        https://telegram.blum.codes/*
@@ -10,46 +10,48 @@
     if (window.BlumAC) return;
     window.BlumAC = true;
 
-    let isPlayClicked = false; // Переменная для отслеживания нажатия кнопки Play
+    let isPlayClicked = false; // Переменная для отслеживания нажатия на ссылку Play
+    let autoClickInterval; // Переменная для хранения идентификатора интервала
 
     const gc = [208, 216, 0]; // Цвет для кликов (зеленый)
-    const bombColor = [255, 0, 0]; // Цвет бомбы, замените на фактический цвет
+    const bombColor = [255, 0, 0]; // Цвет бомбы
     const t = 5; // Допуск для зеленого цвета
     const bombTolerance = 20; // Допуск для цвета бомбы
     const maxClicks = 2; // Максимальное количество кликов за одну итерацию
-    const clickDelay = 50; // Задержка между кликами в миллисекундах (1 секунда)
+    const clickDelay = 50; // Задержка между кликами в миллисекундах
 
-    const playButton = document.querySelector("button.is-primary, .play-btn");
-
-    if (playButton) {
-        playButton.addEventListener('click', () => {
-            isPlayClicked = true; // Устанавливаем флаг, если кнопка была нажата
-            console.log("Кнопка Play нажата вручную, включаем авто-клик."); // Выводим в консоль
-            startAutoClick(); // Запускаем автоматические клики после нажатия
-        });
-    } else {
-        console.log("Кнопка Play не найдена."); // Выводим в консоль, если кнопка не найдена
+    // Функция для поиска ссылки-кнопки <a class="play-btn">Play</a> и установки обработчика клика
+    function setupStartButtonListener() {
+        const startButton = document.querySelector('a.play-btn');
+        if (startButton) {
+            startButton.addEventListener('click', () => {
+                isPlayClicked = true;
+                console.log("Ссылка Play нажата вручную, включаем авто-клик.");
+                startAutoClick();
+            });
+        } else {
+            console.log('Ссылка Play не найдена, повторная попытка через 500 мс');
+            setTimeout(setupStartButtonListener, 500); // Повторяем проверку каждые 500 мс
+        }
     }
 
+    // Функция, которая будет автоматически нажимать на кнопку <button class="kit-button is-large is-primary">Play</button>
     function startAutoClick() {
         clearInterval(autoClickInterval);
 
         autoClickInterval = setInterval(() => {
             if (isPlayClicked) {
-                clickPlayButton();
+                const button = document.querySelector("button.kit-button.is-large.is-primary");
+                if (button && button.innerText.toLowerCase().includes("play")) {
+                    console.log("Автоматический клик по кнопке Play.");
+                    button.click();
+                }
             }
-        }, 5000);
+        }, 5000); // Интервал между автоматическими кликами (5 секунд)
     }
 
-    // Функция для автоматического клика на кнопку Play
-    const clickPlayButton = () => {
-        if (!playButton) return;
-        if (!playButton.textContent.toLowerCase().includes("play")) return;
-        console.log("Автоматический клик по кнопке Play."); // Выводим в консоль
-        playButton.click();
-    };
-
-    let autoClickInterval; // Переменная для хранения идентификатора интервала
+    // Запускаем проверку на наличие кнопки <a> Play при загрузке страницы
+    setupStartButtonListener();
 
     setInterval(() => {
         const canvas = document.querySelector("canvas");
@@ -95,7 +97,7 @@
         // Проверка случайной вероятности клика на каждую позицию
         positionsToClick.forEach((pos, index) => {
             setTimeout(() => {
-                if (Math.random() < 0.5) { // Вероятность клика, можно настроить
+                if (Math.random() < 0.5) { // Вероятность клика
                     simulateClick(screenCanvas, pos.x, pos.y);
                 }
             }, index * clickDelay);
